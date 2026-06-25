@@ -1,0 +1,53 @@
+pipeline {
+
+    agent any
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/YOUR_USERNAME/dockerized-web-app.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t cloudforge-web .'
+            }
+        }
+
+        stage('Verify Image') {
+            steps {
+                sh 'docker images'
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                sh '''
+                docker stop cloudforge-web || true
+                docker rm cloudforge-web || true
+
+                docker run -d \
+                --name cloudforge-web \
+                -p 8080:80 \
+                cloudforge-web
+                '''
+            }
+        }
+
+    }
+
+    post {
+
+        success {
+            echo 'Deployment Successful'
+        }
+
+        failure {
+            echo 'Pipeline Failed'
+        }
+
+    }
+
+}
